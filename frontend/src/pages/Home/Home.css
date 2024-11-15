@@ -1,0 +1,173 @@
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: fit-content;
+    min-height: 100%;
+    width: 100%;
+}
+
+.home-container h1 {
+    font-size: 2.0rem;
+}
+
+.home-container p {
+    font-size: 1.0rem;
+}
+
+.home-container>* {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.home-container>h1 {
+    margin-left: 2rem;
+    margin-right: 2rem;
+}
+
+.status-display {
+    height: 12rem;
+    width: 12rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 3rem;
+}
+
+.status-border {
+    position: absolute;
+    height: 12rem;
+    width: 12rem;
+    border-style: solid;
+    border-width: 4px;
+    border-radius: 50%;
+}
+
+.status-border-not-loading {
+    border-color: #2C2C2C;
+    animation: none;
+}
+
+.status-border-loading {
+    border-color: transparent;
+    border-top-color: #2C2C2C;
+    animation: spin 1s linear infinite;
+}
+
+.status-image {
+    display: block;
+    height: 8rem;
+    width: 8rem;
+    margin: 1.5rem 1.5rem 2.5rem 2.25rem;
+    z-index: 1;
+}
+
+.info-button {
+    display: none;
+}
+
+.info-card {
+    border-style: solid;
+    border-color: #2C2C2C;
+    border-width: 4px;
+    border-radius: 25px;
+    background-color: #D7C5B4;
+    padding: 1rem;
+    height: fit-content;
+    width: fit-content;
+}
+
+.yes {
+    background-color: #77DD77;
+}
+
+.otw {
+    background-color: #FFFAA0;
+}
+
+.no {
+    background-color: #FF5757;
+}
+
+.hide {
+    opacity: 100;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (min-width: 1024px) {
+    .home-container>* {
+        margin-top: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .home-container h1 {
+        font-size: 4.5rem;
+    }
+
+    .home-container p {
+        font-size: 1.6rem;
+    }
+
+    .format-container {
+        display: grid;
+        grid-template-columns: 25% 50% 20% 5%;
+        width: 100%;
+        margin-bottom: 6rem;
+    }
+
+    .format-container>* {
+        margin: auto;
+    }
+
+    .status-display {
+        height: 24rem;
+        width: 24rem;
+    }
+
+    .status-border {
+        height: 24rem;
+        width: 24rem;
+    }
+
+    .status-image {
+        height: 16rem;
+        width: 16rem;
+        margin: 4.5rem 2.625rem 3.75rem 4rem;
+    }
+
+    .info-button {
+        display: block;
+        background-color: #9C6F44;
+        height: 2.5rem;
+        width: 2.5rem;
+        border: none;
+        border-radius: 50%;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+    .info-button svg {
+        height: 1.5rem;
+        width: 1.5rem;
+        vertical-align: bottom;
+    }
+
+    .info-card {
+        transition: opacity 300ms;
+    }
+
+    .hide {
+        opacity: 0;
+    }
+}
