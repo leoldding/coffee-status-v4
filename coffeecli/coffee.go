@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -46,8 +47,7 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			filePath := filepath.Dir(exePath)
-			filePath = filepath.Join(filePath, "coffee.env")
+			dirPath := filepath.Dir(exePath)
 
 			if setup {
 				// check that dynamodb table name exists
@@ -55,6 +55,16 @@ func main() {
 					log.Fatal(errors.New("Must have one argument"))
 				}
 				input := cCtx.Args().Get(0)
+
+				dirPath = filepath.Join(dirPath, "../envs")
+				if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+					// Directory doesn't exist, create it
+					err := os.Mkdir(dirPath, 0755)
+					if err != nil {
+						fmt.Println("Error creating directory:", err)
+					}
+				}
+				filePath := filepath.Join(dirPath, "coffee.env")
 
 				// write to env file
 				err = os.WriteFile(filePath, []byte("DYNAMODB_TABLENAME="+input), 0666)
@@ -64,6 +74,7 @@ func main() {
 				return nil
 			}
 
+			filePath := filepath.Join(dirPath, "../envs/coffee.env")
 			// load table name
 			err = godotenv.Load(filePath)
 			if err != nil {
