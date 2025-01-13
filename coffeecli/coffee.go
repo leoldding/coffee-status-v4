@@ -20,7 +20,6 @@ import (
 
 func main() {
 	var setup bool
-	var get bool
 
 	app := &cli.App{
 		Name:                   "coffee",
@@ -32,13 +31,6 @@ func main() {
 				Value:       false,
 				Usage:       "write db name in env file",
 				Destination: &setup,
-			},
-			&cli.BoolFlag{
-				Name:        "get",
-				Aliases:     []string{"g"},
-				Value:       false,
-				Usage:       "get current status",
-				Destination: &get,
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
@@ -89,7 +81,19 @@ func main() {
 			}
 			client := dynamodb.NewFromConfig(cfg)
 
-			if get {
+			// check that new status exists
+			if cCtx.Args().Len() != 1 {
+				log.Fatal(errors.New("Must have one argument"))
+			}
+			input := cCtx.Args().Get(0)
+
+			// check if new status is valid
+			validStatuses := []string{"yes", "otw", "no", "get"}
+			if !slices.Contains(validStatuses, input) {
+				log.Fatal(errors.New("Invalid input"))
+			}
+
+			if input == "get" {
 				cr := true // use to set ConsistentRead to true
 				// get current status from dynamodb
 				res, err := client.GetItem(context.TODO(), &dynamodb.GetItemInput{
@@ -113,18 +117,6 @@ func main() {
 				log.Println("Current Status: " + out)
 
 				return nil
-			}
-
-			// check that new status exists
-			if cCtx.Args().Len() != 1 {
-				log.Fatal(errors.New("Must have one argument"))
-			}
-			input := cCtx.Args().Get(0)
-
-			// check if new status is valid
-			validStatuses := []string{"yes", "otw", "no"}
-			if !slices.Contains(validStatuses, input) {
-				log.Fatal(errors.New("Invalid input"))
 			}
 
 			// put new status into table
