@@ -15,127 +15,151 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/joho/godotenv"
-	cli "github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
-	var setup bool
-
-	app := &cli.App{
-		Name:                   "coffee",
-		UseShortOptionHandling: true,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:        "setup",
-				Aliases:     []string{"s"},
-				Value:       false,
-				Usage:       "write db name in env file",
-				Destination: &setup,
-			},
-		},
-		Action: func(cCtx *cli.Context) error {
-			// get path
-			exePath, err := os.Executable()
-			if err != nil {
-				log.Fatal(err)
-			}
-			dirPath := filepath.Dir(exePath)
-
-			if setup {
-				// check that dynamodb table name exists
-				if cCtx.Args().Len() != 1 {
-					log.Fatal(errors.New("Must have one argument"))
-				}
-				input := cCtx.Args().Get(0)
-
-				dirPath = filepath.Join(dirPath, "../envs")
-				if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-					// Directory doesn't exist, create it
-					err := os.Mkdir(dirPath, 0755)
+	cmd := &cli.Command{
+		Commands: []*cli.Command{
+			{
+				Name:  "setup",
+				Usage: "write database name to env file",
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					// get path
+					exePath, err := os.Executable()
 					if err != nil {
-						fmt.Println("Error creating directory:", err)
+						log.Fatal(err)
 					}
-				}
-				filePath := filepath.Join(dirPath, "coffee.env")
+					dirPath := filepath.Dir(exePath)
 
-				// write to env file
-				err = os.WriteFile(filePath, []byte("DYNAMODB_TABLENAME="+input), 0666)
-				if err != nil {
-					log.Fatal(err)
-				}
-				return nil
-			}
+					// check that dynamodb table name exists
+					input := cmd.Args().First()
+					if input == "" {
+						log.Fatal(errors.New("database name cannot be empty"))
+					}
 
-			filePath := filepath.Join(dirPath, "../envs/coffee.env")
-			// load table name
-			err = godotenv.Load(filePath)
-			if err != nil {
-				log.Fatal(err)
-			}
-			tableName := os.Getenv("DYNAMODB_TABLENAME")
+					dirPath = filepath.Join(dirPath, "../envs")
+					if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+						// directory doesn't exist, create it
+						err := os.Mkdir(dirPath, 0755)
+						if err != nil {
+							fmt.Println("Error creating directory:", err)
+						}
+					}
+					filePath := filepath.Join(dirPath, "coffee.env")
 
-			// create dynamodb client
-			cfg, err := config.LoadDefaultConfig(context.TODO())
-			if err != nil {
-				log.Fatal(err)
-			}
-			client := dynamodb.NewFromConfig(cfg)
-
-			// check that new status exists
-			if cCtx.Args().Len() != 1 {
-				log.Fatal(errors.New("Must have one argument"))
-			}
-			input := cCtx.Args().Get(0)
-
-			// check if new status is valid
-			validStatuses := []string{"yes", "otw", "no", "get"}
-			if !slices.Contains(validStatuses, input) {
-				log.Fatal(errors.New("Invalid input"))
-			}
-
-			if input == "get" {
-				cr := true // use to set ConsistentRead to true
-				// get current status from dynamodb
-				res, err := client.GetItem(context.TODO(), &dynamodb.GetItemInput{
-					Key: map[string]types.AttributeValue{
-						"key": &types.AttributeValueMemberS{Value: "status"},
-					},
-					TableName:      aws.String(tableName),
-					ConsistentRead: &cr,
-				})
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				// unmarshal value into string
-				var out string
-				err = attributevalue.Unmarshal(res.Item["value"], &out)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				log.Println("Current Status: " + out)
-
-				return nil
-			}
-
-			// put new status into table
-			_, err = client.PutItem(context.TODO(), &dynamodb.PutItemInput{
-				Item: map[string]types.AttributeValue{
-					"key":   &types.AttributeValueMemberS{Value: "status"},
-					"value": &types.AttributeValueMemberS{Value: input},
+					// write to env file
+					err = os.WriteFile(filePath, []byte("DYNAMODB_TABLENAME="+input), 0666)
+					if err != nil {
+						log.Fatal(err)
+					}
+					return nil
 				},
-				TableName: aws.String(tableName),
-			})
+			},
+			{
+				Name:    "set",
+				Aliases: []string{"s"},
+				Usage:   "set status value",
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					// get path
+					exePath, err := os.Executable()
+					if err != nil {
+						log.Fatal(err)
+					}
+					dirPath := filepath.Dir(exePath)
+					filePath := filepath.Join(dirPath, "../envs/coffee.env")
+					// load table name
+					err = godotenv.Load(filePath)
+					if err != nil {
+						log.Fatal(err)
+					}
+					tableName := os.Getenv("DYNAMODB_TABLENAME")
 
-			if err != nil {
-				log.Fatal(err)
-			}
-			return nil
+					// create dynamodb client
+					cfg, err := config.LoadDefaultConfig(context.TODO())
+					if err != nil {
+						log.Fatal(err)
+					}
+					client := dynamodb.NewFromConfig(cfg)
+
+					// check that new status exists
+					input := cmd.Args().First()
+
+					// check if new status is valid
+					validStatuses := []string{"yes", "otw", "no"}
+					if !slices.Contains(validStatuses, input) {
+						log.Fatal(errors.New("invalid input"))
+					}
+					// put new status into table
+					_, err = client.PutItem(context.TODO(), &dynamodb.PutItemInput{
+						Item: map[string]types.AttributeValue{
+							"key":   &types.AttributeValueMemberS{Value: "status"},
+							"value": &types.AttributeValueMemberS{Value: input},
+						},
+						TableName: aws.String(tableName),
+					})
+
+					if err != nil {
+						log.Fatal(err)
+					}
+					log.Println("Status set to", input)
+					return nil
+				},
+			},
+			{
+				Name:    "get",
+				Aliases: []string{"g"},
+				Usage:   "get current status",
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					// get path
+					exePath, err := os.Executable()
+					if err != nil {
+						log.Fatal(err)
+					}
+					dirPath := filepath.Dir(exePath)
+					filePath := filepath.Join(dirPath, "../envs/coffee.env")
+					// load table name
+					err = godotenv.Load(filePath)
+					if err != nil {
+						log.Fatal(err)
+					}
+					tableName := os.Getenv("DYNAMODB_TABLENAME")
+
+					// create dynamodb client
+					cfg, err := config.LoadDefaultConfig(context.TODO())
+					if err != nil {
+						log.Fatal(err)
+					}
+					client := dynamodb.NewFromConfig(cfg)
+					cr := true // use to set ConsistentRead to true
+					// get current status from dynamodb
+					res, err := client.GetItem(context.TODO(), &dynamodb.GetItemInput{
+						Key: map[string]types.AttributeValue{
+							"key": &types.AttributeValueMemberS{Value: "status"},
+						},
+						TableName:      aws.String(tableName),
+						ConsistentRead: &cr,
+					})
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					// unmarshal value into string
+					var out string
+					err = attributevalue.Unmarshal(res.Item["value"], &out)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					log.Println("Current Status: " + out)
+
+					return nil
+				},
+			},
 		},
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}
 }

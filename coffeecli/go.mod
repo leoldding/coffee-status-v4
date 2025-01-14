@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.15.16
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.37.0
 	github.com/joho/godotenv v1.5.1
-	github.com/urfave/cli/v2 v2.27.5
+	github.com/urfave/cli/v3 v3.0.0-beta1
 )
 
 require (
@@ -25,8 +25,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.0 // indirect
 	github.com/aws/smithy-go v1.22.0 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 )
