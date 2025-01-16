@@ -1,4 +1,4 @@
-module github.com/leoldding/coffee-status-v4/coffeecli
+module github.com/leoldding/coffee-status-v4/coffee
 
 go 1.23.3
 
