@@ -13,7 +13,7 @@ const Home: React.FC = () => {
     useEffect(() => {
         const getStatus = async () => {
             try {
-                const response = await fetch("/api/status", {
+                const response = await fetch("/api/v1/status", {
                     method: "GET",
                 });
                 if (!response.ok) {
