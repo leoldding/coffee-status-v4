@@ -41,7 +41,7 @@ func handleRequest(ctx context.Context, req events.APIGatewayProxyRequest) (even
 	})
 	if err != nil {
 		log.Printf("Error retrieving status from DynamoDB: %v", err)
-		return events.APIGatewayProxyResponse{StatusCode: 500}, err
+		return events.APIGatewayProxyResponse{StatusCode: 500, Body: `{"error":"failed to retrieve item"}`}, err
 	}
 	var out string
 	_ = attributevalue.Unmarshal(res.Item["value"], &out)
