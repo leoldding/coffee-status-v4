@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -12,6 +13,8 @@ var cloudFrontSecret = os.Getenv("CLOUDFRONT_SECRET")
 
 func handler(ctx context.Context, event events.APIGatewayV2CustomAuthorizerV2Request) (events.APIGatewayV2CustomAuthorizerSimpleResponse, error) {
 	key := event.Headers["X-CloudFront-Secret"]
+	log.Println("env key:", cloudFrontSecret)
+	log.Println("header key:", key)
 
 	if key != cloudFrontSecret {
 		return events.APIGatewayV2CustomAuthorizerSimpleResponse{
