@@ -20,7 +20,7 @@ const Home: React.FC = () => {
                     throw new Error("Error retrieving status");
                 }
                 const json = await response.json();
-                setStatus(json.Item.value.S);
+                setStatus(json.value);
                 setLoading(false);
             } catch (error) {
                 console.error(error);
