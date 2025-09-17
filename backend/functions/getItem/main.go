@@ -1,4 +1,4 @@
-package getItem
+package main
 
 import (
 	"context"
