@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 jobs:
-  DeployGetItem:
+  DeployLambdaAuthorizer:
     runs-on: ubuntu-latest
     steps:
       # 1️⃣ Checkout repo
@@ -34,7 +34,7 @@ jobs:
       # 3️⃣ Build binary for Lambda (ARM64)
       - name: Build Go binary for Lambda
         run: |
-          cd backend/functions/getItem
+          cd backend/authorizer
           # Build for Linux ARM64
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap main.go
           # Make sure binary is executable
@@ -56,6 +56,6 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name ${{ env.AWS_FUNCTION_NAME }} \
-            --zip-file fileb://backend/functions/getItem/function.zip
+            --zip-file fileb://backend/authorizer/function.zip
 
 
