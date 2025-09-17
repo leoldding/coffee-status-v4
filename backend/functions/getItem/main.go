@@ -30,7 +30,7 @@ func main() {
 	lambda.Start(handleRequest)
 }
 
-func handleRequest(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	cr := true
 	res, err := database.Client.GetItem(ctx, &dynamodb.GetItemInput{
 		Key: map[string]types.AttributeValue{
@@ -41,12 +41,12 @@ func handleRequest(ctx context.Context, req events.APIGatewayProxyRequest) (even
 	})
 	if err != nil {
 		log.Printf("Error retrieving status from DynamoDB: %v", err)
-		return events.APIGatewayProxyResponse{StatusCode: 500, Body: `{"error":"failed to retrieve item"}`}, err
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500, Body: `{"error":"failed to retrieve item"}`}, err
 	}
 	var out string
 	_ = attributevalue.Unmarshal(res.Item["value"], &out)
 	body, _ := json.Marshal(models.Status{Value: out})
-	return events.APIGatewayProxyResponse{
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 		Body:       string(body),
 	}, nil

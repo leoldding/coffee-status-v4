@@ -29,12 +29,12 @@ func main() {
 	lambda.Start(handleRequest)
 }
 
-func handleRequest(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handleRequest(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	var status models.Status
 
 	if err := json.Unmarshal([]byte(req.Body), &status); err != nil {
 		log.Printf("Error unmarshaling request body: %v", err)
-		return events.APIGatewayProxyResponse{StatusCode: 400}, err
+		return events.APIGatewayV2HTTPResponse{StatusCode: 400}, err
 	}
 
 	_, err := database.Client.PutItem(ctx, &dynamodb.PutItemInput{
@@ -47,10 +47,10 @@ func handleRequest(ctx context.Context, req events.APIGatewayProxyRequest) (even
 
 	if err != nil {
 		log.Printf("Error putting status to DynamoDB: %v", err)
-		return events.APIGatewayProxyResponse{StatusCode: 500}, err
+		return events.APIGatewayV2HTTPResponse{StatusCode: 500}, err
 	}
 
-	return events.APIGatewayProxyResponse{
+	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
 	}, nil
 }
