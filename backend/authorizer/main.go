@@ -12,7 +12,7 @@ import (
 var cloudFrontSecret = os.Getenv("CLOUDFRONT_SECRET")
 
 func handler(ctx context.Context, event events.APIGatewayV2CustomAuthorizerV2Request) (events.APIGatewayV2CustomAuthorizerSimpleResponse, error) {
-	key := event.Headers["X-CloudFront-Secret"]
+	key := event.Headers["x-cloudfront-secret"]
 	log.Println("env key:", cloudFrontSecret)
 	log.Println("header key:", key)
 
