@@ -38,6 +38,9 @@ jobs:
           cd backend/functions/getItem
           # Build for Linux ARM64
           GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap main.go
+          # Make sure binary is executable
+          chmod +x bootstrap
+
           # Zip binary at root of zip
           zip function.zip bootstrap
 
