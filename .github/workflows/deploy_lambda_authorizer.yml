@@ -1,4 +1,4 @@
-name: Deploy GetItem Lambda
+name: Deploy Lambda Authorizer
 
 on:
   workflow_dispatch:
@@ -6,12 +6,12 @@ on:
     branches: 
       - 'main'
     paths:
-      - 'backend/functions/getItem/**'
+      - 'backend/authorizer/**'
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-  AWS_FUNCTION_NAME: ${{ secrets.AWS_GETITEM_FUNCTION_NAME }}
+  AWS_FUNCTION_NAME: ${{ secrets.AWS_AUTHORIZER_FUNCTION_NAME }}
 
 permissions:
   id-token: write
@@ -57,4 +57,5 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ env.AWS_FUNCTION_NAME }} \
             --zip-file fileb://backend/functions/getItem/function.zip
+
 
