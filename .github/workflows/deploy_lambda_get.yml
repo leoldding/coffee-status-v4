@@ -60,6 +60,5 @@ jobs:
             --function-name ${{ env.AWS_FUNCTION_NAME }} \
             --runtime provided.al2 \
             --handler bootstrap \
-            --architectures arm64 \
             --environment "Variables={DYNAMODB_TABLENAME=${{ env.AWS_DYNAMODB_TABLENAME }}}"
 
