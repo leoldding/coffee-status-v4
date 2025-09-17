@@ -1,0 +1,62 @@
+name: Deploy PutItem Lambda
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - 'main'
+    paths:
+      - 'backend/functions/putItem/**'
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+  AWS_FUNCTION_NAME: ${{ secrets.AWS_PUTITEM_FUNCTION_NAME }}
+  AWS_DYNAMODB_TABLENAME: ${{ secrets.AWS_DYNAMODB_TABLENAME }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  DeployPutItem:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Checkout repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2️⃣ Set up Go
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      # 3️⃣ Build binary for Lambda (ARM64)
+      - name: Build Go binary for Lambda
+        run: |
+          cd backend/functions/putItem
+          # Build for Linux ARM64
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -tags lambda.norpc -o bootstrap main.go
+          # Make sure binary is executable
+          chmod +x bootstrap
+
+          # Zip binary at root of zip
+          zip function.zip bootstrap
+
+      # 4️⃣ Configure AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with: 
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          role-session-name: github-action-coffee
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 5️⃣ Deploy to Lambda
+      - name: Deploy Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ env.AWS_FUNCTION_NAME }} \
+            --zip-file fileb://backend/functions/putItem/function.zip
+
+

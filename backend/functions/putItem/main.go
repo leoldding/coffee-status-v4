@@ -1,4 +1,4 @@
-package putItem
+package main
 
 import (
 	"context"
