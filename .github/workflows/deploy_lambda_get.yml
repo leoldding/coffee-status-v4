@@ -55,10 +55,4 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ env.AWS_FUNCTION_NAME }} \
             --zip-file fileb://backend/functions/getItem/function.zip
-          
-          aws lambda update-function-configuration \
-            --function-name ${{ env.AWS_FUNCTION_NAME }} \
-            --runtime provided.al2 \
-            --handler bootstrap \
-            --environment "Variables={DYNAMODB_TABLENAME=${{ env.AWS_DYNAMODB_TABLENAME }}}"
 
