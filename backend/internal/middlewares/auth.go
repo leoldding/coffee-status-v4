@@ -12,7 +12,7 @@ func AuthCheck(next http.Handler) http.Handler {
 			return
 		}
 
-		req, err := http.NewRequest("GET", "/api/v1/auth/check", nil)
+		req, err := http.NewRequest("GET", "http://localhost:8080/api/v1/auth/check", nil)
 		if err != nil {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
