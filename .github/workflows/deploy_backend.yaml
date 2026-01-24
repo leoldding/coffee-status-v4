@@ -1,0 +1,86 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - 'main'
+    paths:
+      - 'backend/**'
+
+env:
+  AWS_S3_BUCKET_NAME_API: ${{ secrets.AWS_S3_BUCKET_NAME_API }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+  AWS_EC2_INSTANCE_ID: ${{ secrets.AWS_EC2_INSTANCE_ID }}
+
+permissions: 
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          role-session-name: coffee-api-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build Go binary
+        working-directory: ./backend
+        run: |
+          GOOS=linux GOARCH=arm64 go build -o coffee_service ./cmd/server/.
+
+      - name: Upload artifact to S3
+        working-directory: ./backend
+        run: |
+          aws s3 cp ./coffee_service s3://${{ env.AWS_S3_BUCKET_NAME_API }}
+
+      - name: Run deployment on EC2 via SSM
+        working-directory: ./backend
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --instance-ids "${{ env.AWS_EC2_INSTANCE_ID }}" \
+            --comment "Deploy coffee service" \
+            --parameters commands="[
+              \"sudo mkdir -p /usr/local/bin\",
+              \"sudo aws s3 cp s3://${{ env.AWS_S3_BUCKET_NAME_API }}/coffee_service /usr/local/bin/coffee_service\",
+              \"sudo chmod +x /usr/local/bin/coffee_service\",
+              \"sudo systemctl restart coffee_service\"
+            ]" \
+            --query "Command.CommandId" --output text)
+
+          echo "SSM Command ID: $COMMAND_ID"
+
+          for i in {1..30}; do
+            STATUS=$(aws ssm list-command-invocations \
+              --command-id $COMMAND_ID \
+              --instance-id "${{ env.AWS_EC2_INSTANCE_ID }}" \
+              --query "CommandInvocations[0].Status" \
+              --output text)
+
+            echo "Attempt $i: SSM Command status = $STATUS"
+
+            if [ "$STATUS" == "Success" ]; then
+              echo "Deployment successful"
+              exit 0
+            elif [ "$STATUS" == "Failed" ] || [ "$STATUS" == "Cancelled" ] || [ "$STATUS" == "TimedOut" ]; then
+              echo "Deployment failed with status $STATUS"
+              aws ssm list-command-invocations --command-id $COMMAND_ID --instance-id "${{ env.AWS_EC2_INSTANCE_ID }}" --details
+              exit 1
+            fi
+
+            sleep 10
+          done
+
+          echo "Deployment did not complete within timeout"
+          exit 1
+ 
