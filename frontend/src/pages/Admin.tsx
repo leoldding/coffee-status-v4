@@ -21,7 +21,7 @@ const Admin: React.FC = () => {
             } catch (error) {
                 setAuthenticated(false);
                 console.error(error);
-                window.location.href = "https://auth.leoding.com?redirect=coffee"
+                window.location.href = "https://auth.leoding.com?redirect=https://coffee.leoding.com/admin"
             }
         };
         checkAuth();
