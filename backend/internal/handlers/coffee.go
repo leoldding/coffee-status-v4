@@ -15,7 +15,8 @@ import (
 )
 
 type CoffeeHandler struct {
-	clients *awsclients.Clients
+	clients   *awsclients.Clients
+	tableName string
 }
 
 type status struct {
@@ -23,80 +24,97 @@ type status struct {
 }
 
 func NewCoffeeHandler(clients *awsclients.Clients) *CoffeeHandler {
-	return &CoffeeHandler{clients}
-}
-
-func (c *CoffeeHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
-	tableName, err := c.clients.SSM.GetParameter(context.Background(), &ssm.GetParameterInput{
+	param, err := clients.SSM.GetParameter(context.Background(), &ssm.GetParameterInput{
 		Name: aws.String("/leoding/dynamodb/coffee"),
 	})
 	if err != nil {
-		log.Println("ssm error:", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
+		panic(err)
 	}
 
-	cr := true
-	resp, err := c.clients.DynamoDB.GetItem(context.Background(), &dynamodb.GetItemInput{
+	return &CoffeeHandler{clients, *param.Parameter.Value}
+}
+
+func (c *CoffeeHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	resp, err := c.clients.DynamoDB.GetItem(ctx, &dynamodb.GetItemInput{
 		Key: map[string]types.AttributeValue{
 			"key": &types.AttributeValueMemberS{Value: "status"},
 		},
-		TableName:      aws.String(*tableName.Parameter.Value),
-		ConsistentRead: &cr,
+		TableName:      aws.String(c.tableName),
+		ConsistentRead: aws.Bool(true),
 	})
 	if err != nil {
-		log.Println("dynamodb get item error", err)
+		log.Printf("dynamodb get item error: %v", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	var out string
-	_ = attributevalue.Unmarshal(resp.Item["value"], &out)
+	if resp.Item == nil {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	val, ok := resp.Item["value"]
+	if !ok {
+		http.Error(w, "invalid item", http.StatusInternalServerError)
+		return
+	}
+
+	if err := attributevalue.Unmarshal(val, &out); err != nil {
+		log.Printf("unmarshal error: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(status{Value: out})
-	return
+	if err := json.NewEncoder(w).Encode(status{Value: out}); err != nil {
+		log.Printf("encode error: %v", err)
+	}
 }
 
 func (c *CoffeeHandler) PutStatus(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	ctx := r.Context()
 	var stat status
 
 	err := json.NewDecoder(r.Body).Decode(&stat)
 	if err != nil {
-		log.Println("failed to decode json body:", err)
+		log.Printf("failed to decode json body: %v", err)
 		http.Error(w, "invalid json body", http.StatusBadRequest)
 		return
 	}
 
-	tableName, err := c.clients.SSM.GetParameter(context.Background(), &ssm.GetParameterInput{
-		Name: aws.String("/leoding/dynamodb/coffee"),
-	})
-	if err != nil {
-		log.Println("ssm error:", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	_, err = c.clients.DynamoDB.PutItem(context.Background(), &dynamodb.PutItemInput{
-		Item: map[string]types.AttributeValue{
-			"key":   &types.AttributeValueMemberS{Value: "status"},
-			"value": &types.AttributeValueMemberS{Value: stat.Value},
+	_, err = c.clients.DynamoDB.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		Key: map[string]types.AttributeValue{
+			"key": &types.AttributeValueMemberS{Value: "status"},
 		},
-		TableName: aws.String(*tableName.Parameter.Value),
+		TableName: aws.String(c.tableName),
+
+		UpdateExpression:    aws.String("SET #v = :val"),
+		ConditionExpression: aws.String("attribute_exists(#k)"),
+
+		ExpressionAttributeNames: map[string]string{
+			"#k": "key",
+			"#v": "value",
+		},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":val": &types.AttributeValueMemberS{Value: stat.Value},
+		},
 	})
 
 	if err != nil {
-		log.Printf("dynamodb put item error", err)
+		log.Printf("dynamodb update item error: %v", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application-json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]any{
-		"success": true,
-	})
-
-	return
+	if err := json.NewEncoder(w).Encode(map[string]any{"success": true}); err != nil {
+		log.Printf("encode error: %v", err)
+	}
 }
