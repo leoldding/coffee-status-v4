@@ -33,6 +33,7 @@ func (c *CoffeeHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("ssm error:", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	cr := true
@@ -74,6 +75,7 @@ func (c *CoffeeHandler) PutStatus(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("ssm error:", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	_, err = c.clients.DynamoDB.PutItem(context.Background(), &dynamodb.PutItemInput{
