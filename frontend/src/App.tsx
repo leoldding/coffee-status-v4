@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes  } from "react-router-dom";
 import { Home, Admin, NotFound } from "./pages";
 
 const App: React.FC = () => {
@@ -9,8 +9,7 @@ const App: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/admin" element={<Admin />} />
-                    <Route path="/404" element={<NotFound />} />
-                    <Route path="*" element={<Navigate to="/404" />} />
+                    <Route path="/*" element={<NotFound />} />
                 </Routes>
             </Router>
         </>
