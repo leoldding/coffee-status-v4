@@ -5,7 +5,7 @@ import { Home, Admin, NotFound } from "./pages";
 const App: React.FC = () => {
     return (
         <>
-            <Router basename="/coffee">
+            <Router>
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/admin" element={<Admin />} />
