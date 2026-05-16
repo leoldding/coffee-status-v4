@@ -23,7 +23,7 @@ const Admin: React.FC = () => {
             } catch (error) {
                 setAuthenticated(false);
                 console.error(error);
-                window.location.replace("/auth?redirect=coffee")
+                window.location.replace("/auth?redirect=/coffee/admin")
             }
         };
         checkAuth();
