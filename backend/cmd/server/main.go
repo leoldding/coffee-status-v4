@@ -24,6 +24,8 @@ func main() {
 
 	r.Get("/api/v1/coffee/health", healthcheck)
 
+	r.Get("/api/v1/coffee/test", test)
+
 	coffeeHandler := handlers.NewCoffeeHandler(clients)
 	r.Route("/api/v1/coffee", func(r chi.Router) {
 		r.Use(middlewares.CORS())
@@ -38,5 +40,10 @@ func main() {
 
 func healthcheck(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte("coffee service is healthy"))
+	return
+}
+
+func test(w http.ResponseWriter, _ *http.Request) {
+	w.Write([]byte("new bucket works"))
 	return
 }
