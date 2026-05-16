@@ -37,7 +37,7 @@ const Home: React.FC = () => {
                     <div className="relative h-48 md:h-96 w-48 md:w-96">
                         <div className={"absolute inset-0 border-solid border-4 rounded-full" + (loading ? " border-t-transparent animate-spin " : " ") + (status)} />
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <img className="ml-3 md:ml-8 h-36 md:h-72 w-36 md:w-72" src="/coffee_cup.png" alt="coffee cup icon" />
+                            <img className="ml-3 md:ml-8 h-36 md:h-72 w-36 md:w-72" src={`${import.meta.env.BASE_URL}coffee_cup.png`} alt="coffee cup icon" />
                         </div>
                         <button className="hidden absolute bottom-0 right-0 md:flex items-center justify-center btn btn-soft btn-accent btn-circle" onClick={toggleInfo}>
                             <FaInfoCircle />
