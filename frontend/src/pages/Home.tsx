@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaInfoCircle, FaLock } from "react-icons/fa";
+import { apiJson } from "../api/client";
 
 const Home: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
@@ -13,13 +14,7 @@ const Home: React.FC = () => {
     useEffect(() => {
         const getStatus = async () => {
             try {
-                const response = await fetch("/api/v1/coffee/status", {
-                    method: "GET",
-                });
-                if (!response.ok) {
-                    throw new Error("Error retrieving status");
-                }
-                const json = await response.json();
+                const json = await apiJson<{ value: string }>("/api/v1/coffee/status");
                 setStatus(json.value);
                 setLoading(false);
             } catch (error) {

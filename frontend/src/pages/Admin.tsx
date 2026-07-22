@@ -2,44 +2,38 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaHome } from "react-icons/fa";
 import { MdCheck, MdClose } from "react-icons/md";
+import { api } from "../api/client";
 
 const Admin: React.FC = () => {
     const [authenticated, setAuthenticated] = useState<boolean>(false);
     const [updateStatus, setUpdateStatus] = useState<number>(0); // 0=hidden, 1=loading, 2=success, 3=failure
 
     useEffect(() => {
-        const checkAuth = async () => {
+        const check = async () => {
             try {
-                const resp = await fetch("/api/v1/auth/check", {
-                    method: "GET",
-                    credentials: "include",
-                });
-
-                if (!resp.ok) {
-                    throw new Error("not authenticated");
-                }
-
+                await api("/api/v1/auth/check");
                 setAuthenticated(true);
-            } catch (error) {
-                setAuthenticated(false);
-                console.error(error);
-                window.location.replace("/auth?redirect=/coffee/admin")
+            } catch {
+                // api() already redirected.
             }
         };
-        checkAuth();
+
+        check();
     }, []);
 
     const putStatus = async (status: string) => {
         setUpdateStatus(1);
         try {
-            const response = await fetch("/api/v1/coffee/status", {
+            const response = await api("/api/v1/coffee/status", {
                 method: "POST",
-                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ "value": status }),
+                body: JSON.stringify({
+                    value: status,
+                }),
             });
+
             if (!response.ok) {
                 throw new Error("Error updating status");
             }
