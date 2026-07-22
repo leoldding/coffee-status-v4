@@ -70,8 +70,6 @@ func (c *CoffeeHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *CoffeeHandler) PutStatus(w http.ResponseWriter, r *http.Request) {
-    log.Println("PutStatus handler reached")
-
 	defer r.Body.Close()
 
 	ctx := r.Context()

@@ -39,6 +39,7 @@ func main() {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(authmiddleware.RequestID)
 
 	r.Get("/api/v1/coffee/health", healthcheck)
 
