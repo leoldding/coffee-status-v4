@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/leoldding/coffee/internal/awsclients"
 )
 
@@ -23,15 +21,11 @@ type status struct {
 	Value string `json:"value"`
 }
 
-func NewCoffeeHandler(clients *awsclients.Clients) *CoffeeHandler {
-	param, err := clients.SSM.GetParameter(context.Background(), &ssm.GetParameterInput{
-		Name: aws.String("/leoding/dynamodb/coffee"),
-	})
-	if err != nil {
-		panic(err)
+func NewCoffeeHandler(clients *awsclients.Clients, tableName string) *CoffeeHandler {
+	return &CoffeeHandler{
+		clients:   clients,
+		tableName: tableName,
 	}
-
-	return &CoffeeHandler{clients, *param.Parameter.Value}
 }
 
 func (c *CoffeeHandler) GetStatus(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +99,6 @@ func (c *CoffeeHandler) PutStatus(w http.ResponseWriter, r *http.Request) {
 			":val": &types.AttributeValueMemberS{Value: stat.Value},
 		},
 	})
-
 	if err != nil {
 		log.Printf("dynamodb update item error: %v", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

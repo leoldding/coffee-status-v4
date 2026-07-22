@@ -1,6 +1,6 @@
 module github.com/leoldding/coffee
 
-go 1.24.3
+go 1.26.5
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.40.1
@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.67.4
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.2.3
+	github.com/leoldding/auth-middleware v0.0.0-20260718154058-b520056f4ea3
 )
 
 require (
