@@ -36,9 +36,7 @@ github.com/aws/aws-sdk-go-v2/service/sts v1.41.2 h1:a5UTtD4mHBU3t0o6aHQZFJTNKVfx
 github.com/aws/aws-sdk-go-v2/service/sts v1.41.2/go.mod h1:6TxbXoDSgBQ225Qd8Q+MbxUxUh6TtNKwbRt/EPS9xso=
 github.com/aws/smithy-go v1.24.0 h1:LpilSUItNPFr1eY85RYgTIg5eIEPtvFbskaFcmmIUnk=
 github.com/aws/smithy-go v1.24.0/go.mod h1:LEj2LM3rBRQJxPZTB4KuzZkaZYnZPnvgIhb4pu07mx0=
-github.com/go-chi/chi v1.5.5 h1:vOB/HbEMt9QqBqErz07QehcOKHaWFtuj87tTDVz2qXE=
-github.com/go-chi/chi v1.5.5/go.mod h1:C9JqLr3tIYjDOZpzn+BCuxY8z8vmca43EeMgyZt7irw=
 github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
 github.com/go-chi/chi/v5 v5.2.3/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
-github.com/leoldding/auth-middleware v0.0.0-20260718154058-b520056f4ea3 h1:tKanE3lBFCRRpzpSHBgIgQa1TlrRU1eb8T2KOFvsRxc=
-github.com/leoldding/auth-middleware v0.0.0-20260718154058-b520056f4ea3/go.mod h1:lhoUCpI7cu915ZFmOopvsXvI+Q9icsdbKxQHjBKYVs0=
+github.com/leoldding/auth-middleware v0.0.0-20260722012418-8d3e1225d58b h1:eJIYiMKfX2HwI5YjGQ7HBuWGjmk+Gve0PKiIE3UnWSY=
+github.com/leoldding/auth-middleware v0.0.0-20260722012418-8d3e1225d58b/go.mod h1:lhoUCpI7cu915ZFmOopvsXvI+Q9icsdbKxQHjBKYVs0=

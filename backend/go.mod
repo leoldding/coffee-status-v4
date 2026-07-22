@@ -8,9 +8,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.20.27
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.53.3
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.67.4
-	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.2.3
-	github.com/leoldding/auth-middleware v0.0.0-20260718154058-b520056f4ea3
+	github.com/leoldding/auth-middleware v0.0.0-20260722012418-8d3e1225d58b
 )
 
 require (
