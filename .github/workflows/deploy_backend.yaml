@@ -3,10 +3,10 @@ name: Deploy API
 on:
   workflow_dispatch:
   push:
-    branches: 
-      - 'main'
+    branches:
+      - "main"
     paths:
-      - 'backend/**'
+      - "backend/**"
 
 env:
   AWS_S3_BUCKET_NAME_API: ${{ secrets.AWS_S3_BUCKET_NAME_API }}
@@ -14,7 +14,7 @@ env:
   AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
   AWS_EC2_INSTANCE_ID: ${{ secrets.AWS_EC2_INSTANCE_ID }}
 
-permissions: 
+permissions:
   id-token: write
   contents: read
 
@@ -26,13 +26,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials 
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           role-session-name: coffee-api-deploy
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Configure Git for private modules
+        run: |
+          git config --global url."https://${{ secrets.AUTH_MIDDLEWARE_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+
+      - name: Configure Go for private modules
+        run: |
+          go env -w GOPRIVATE=github.com/leoldding/auth-middleware
+          
       - name: Build Go binary
         working-directory: ./backend
         run: |
@@ -83,4 +91,3 @@ jobs:
 
           echo "Deployment did not complete within timeout"
           exit 1
- 
