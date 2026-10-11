@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"log"
 	"net/http"
 
@@ -12,6 +14,8 @@ import (
 	"github.com/leoldding/coffee/internal/awsclients"
 )
 
+const maxRequestBodyBytes = 16 << 10
+
 type CoffeeHandler struct {
 	clients   *awsclients.Clients
 	tableName string
@@ -19,6 +23,26 @@ type CoffeeHandler struct {
 
 type status struct {
 	Value string `json:"value"`
+}
+
+func decodeStatus(r *http.Request) (status, error) {
+	var stat status
+	decoder := json.NewDecoder(http.MaxBytesReader(nil, r.Body, maxRequestBodyBytes))
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&stat); err != nil {
+		return status{}, err
+	}
+
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return status{}, errors.New("request body must contain a single JSON object")
+	}
+
+	if stat.Value != "yes" && stat.Value != "otw" && stat.Value != "no" {
+		return status{}, errors.New("invalid status value")
+	}
+
+	return stat, nil
 }
 
 func NewCoffeeHandler(clients *awsclients.Clients, tableName string) *CoffeeHandler {
@@ -73,9 +97,7 @@ func (c *CoffeeHandler) PutStatus(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	ctx := r.Context()
-	var stat status
-
-	err := json.NewDecoder(r.Body).Decode(&stat)
+	stat, err := decodeStatus(r)
 	if err != nil {
 		log.Printf("failed to decode json body: %v", err)
 		http.Error(w, "invalid json body", http.StatusBadRequest)

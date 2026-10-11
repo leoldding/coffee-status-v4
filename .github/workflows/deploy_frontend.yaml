@@ -29,10 +29,11 @@ jobs:
           with: 
             node-version: 20.x
 
-        - name: Install and Build
+        - name: Lint and Build
           working-directory: ./frontend
           run: | 
-            npm install
+            npm ci
+            npm run lint
             npm run build
 
         - name: Configure AWS Credentials
@@ -46,4 +47,3 @@ jobs:
           working-directory: ./frontend/dist
           run: aws s3 sync . s3://${{ env.AWS_S3_BUCKET_NAME_UI }} --delete
     
-

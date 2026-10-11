@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -44,7 +46,7 @@ func main() {
 	r.Get("/api/v1/coffee/health", healthcheck)
 
 	r.Route("/api/v1/coffee", func(r chi.Router) {
-		r.Use(middlewares.CORS())
+		r.Use(middlewares.CORS(cfg.DevOrigin))
 
 		r.Get("/status", coffeeHandler.GetStatus)
 
@@ -52,10 +54,18 @@ func main() {
 			Post("/status", coffeeHandler.PutStatus)
 	})
 
-	log.Println("coffee service running on :8081")
+	server := &http.Server{
+		Addr:              ":8081",
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
 
-	if err := http.ListenAndServe(":8081", r); err != nil {
-		log.Fatalf("server exited: %v", err)
+	log.Printf("coffee service starting on %s", server.Addr)
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("server startup failed: %v", err)
 	}
 }
 

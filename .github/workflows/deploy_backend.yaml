@@ -26,6 +26,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ./backend/go.mod
+          cache-dependency-path: ./backend/go.sum
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -40,7 +46,13 @@ jobs:
       - name: Configure Go for private modules
         run: |
           go env -w GOPRIVATE=github.com/leoldding/auth-middleware
-          
+
+      - name: Vet and test
+        working-directory: ./backend
+        run: |
+          go vet ./...
+          go test ./...
+
       - name: Build Go binary
         working-directory: ./backend
         run: |

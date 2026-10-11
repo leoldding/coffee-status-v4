@@ -5,23 +5,30 @@ import { apiJson } from "../api/client";
 
 const Home: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
     const [showInfo, setShowInfo] = useState<boolean>(false);
     const [status, setStatus] = useState<string>("");
     const toggleInfo = () => {
         setShowInfo(!showInfo);
     };
 
+    const getStatus = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const json = await apiJson<{ value: string }>("/api/v1/coffee/status");
+            setStatus(json.value);
+        } catch (error) {
+            console.error(error);
+            setError("Unable to load coffee status.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const getStatus = async () => {
-            try {
-                const json = await apiJson<{ value: string }>("/api/v1/coffee/status");
-                setStatus(json.value);
-                setLoading(false);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        getStatus();
+        void getStatus();
     }, []);
 
     return (
@@ -38,13 +45,22 @@ const Home: React.FC = () => {
                             <FaInfoCircle />
                         </button>
                     </div>
-                    <div className={"card opacity-100 w-48 bg-accent text-accent-content card-sm shadow-md" + (showInfo ? "" : " md:opacity-0")}>
-                        <div className="card-body">
-                            <p>Green = "Yes"</p>
-                            <p>Yellow = "On the Way"</p>
-                            <p>Red = "No"</p>
+                    {error ? (
+                        <div className="card w-64 bg-error text-error-content card-sm shadow-md">
+                            <div className="card-body items-center">
+                                <p>{error}</p>
+                                <button className="btn btn-sm" onClick={() => void getStatus()}>Retry</button>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className={"card opacity-100 w-48 bg-accent text-accent-content card-sm shadow-md" + (showInfo ? "" : " md:opacity-0")}>
+                            <div className="card-body">
+                                <p>Green = "Yes"</p>
+                                <p>Yellow = "On the Way"</p>
+                                <p>Red = "No"</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="fixed bottom-6 right-6">
                     <Link to="/admin">

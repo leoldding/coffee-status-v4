@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
@@ -11,6 +12,7 @@ import (
 type Config struct {
 	AuthServiceURL string
 	DynamoDBTable  string
+	DevOrigin      string
 }
 
 func Load(ctx context.Context, ssmClient *ssm.Client) (*Config, error) {
@@ -27,6 +29,7 @@ func Load(ctx context.Context, ssmClient *ssm.Client) (*Config, error) {
 	return &Config{
 		AuthServiceURL: authURL,
 		DynamoDBTable:  tableName,
+		DevOrigin:      os.Getenv("COFFEE_DEV_ORIGIN"),
 	}, nil
 }
 
